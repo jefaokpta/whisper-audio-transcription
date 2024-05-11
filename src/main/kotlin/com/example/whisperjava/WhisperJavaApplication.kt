@@ -18,28 +18,21 @@ fun main(args: Array<String>) {
     WhisperJNI.loadLibrary()
     WhisperJNI.setLibraryLogger(null)
     val whisper = WhisperJNI()
-    val samples: FloatArray = readAudioFileSamples("src/main/resources/audios/anderson.wav")
-    var ctx = whisper.init(Path.of("src/main/resources/models/ggml-large-v3.bin"))
+    val audioSamples: FloatArray = readAudioFileSamples("src/main/resources/audios/papagaio.wav")
+    var model = whisper.init(Path.of("src/main/resources/models/ggml-large-v3.bin"))
     val params = WhisperFullParams()
-    params.language = "pt"
-    val result = whisper.full(ctx, params, samples, samples.size)
+    params.language = "pt-BR"
+    val result = whisper.full(model, params, audioSamples, audioSamples.size)
     if (result != 0) {
         throw RuntimeException("Transcription failed with code $result")
     }
-    val numSegments = whisper.fullNSegments(ctx)
+    val numSegments = whisper.fullNSegments(model)
     println("Number of segments: $numSegments")
-    val text = whisper.fullGetSegmentText(ctx,0)
-//    val text2 = whisper.fullGetSegmentText(ctx,1)
-//    val text3 = whisper.fullGetSegmentText(ctx,2)
-//    val text4 = whisper.fullGetSegmentText(ctx,3)
-
-    println("Transcription: $text")
-//    println("Transcription: $text2")
-//    println("Transcription: $text3")
-//    println("Transcription: $text4")
-    //And so my fellow Americans ask not what your country can do for you ask what you can do for your country.", text);
+    for (i in 0 until numSegments) {
+        println(whisper.fullGetSegmentText(model, i))
+    }
 }
-
+//todo: descobrir melhor forma de extrair os samples do arquivo de audio
 fun readAudioFileSamples(filePath: String): FloatArray {
     val audioInputStream = AudioSystem.getAudioInputStream(File(filePath))
     val audioFormat = audioInputStream.format
